@@ -248,16 +248,20 @@ jobs:
         continue-on-error: true
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Add cache_from to docker-compose YAML
+        run: .github/add-cache-to-docker-compose.sh "${{ steps.ecr.outputs.registry }}" < docker-compose.test.yml > docker-compose.test.with_cache.yml
+        shell: bash
+
       - name: Pull latest image
         continue-on-error: true
         run: |
           docker pull ${{ steps.ecr.outputs.registry }}/buildkite:horovod-${{ matrix.image }}-latest
-          docker tag ${{ steps.ecr.outputs.registry }}/buildkite:horovod-${{ matrix.image }}-latest ${{ matrix.image }}
+          docker image ls -a
 
       - name: Build
         id: build
         run: |
-          .github/timeout-and-retry.sh ${{ matrix.build_timeout }}m 3 10 docker-compose -f docker-compose.test.yml build ${{ matrix.image }}
+          .github/timeout-and-retry.sh ${{ matrix.build_timeout }}m 3 10 docker-compose -f docker-compose.test.with_cache.yml build ${{ matrix.image }}
 
       - name: "Elastic Spark TensorFlow Tests 1"
         if: always() && steps.build.outcome == 'success' && matrix.Elastic_Spark_TensorFlow_Tests_1
@@ -670,16 +674,20 @@ jobs:
         continue-on-error: true
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Add cache_from to docker-compose YAML
+        run: .github/add-cache-to-docker-compose.sh "${{ steps.ecr.outputs.registry }}" < docker-compose.test.yml > docker-compose.test.with_cache.yml
+        shell: bash
+
       - name: Pull latest image
         continue-on-error: true
         run: |
           docker pull ${{ steps.ecr.outputs.registry }}/buildkite:horovod-${{ matrix.image }}-latest
-          docker tag ${{ steps.ecr.outputs.registry }}/buildkite:horovod-${{ matrix.image }}-latest ${{ matrix.image }}
+          docker image ls -a
 
       - name: Build
         id: build
         run: |
-          .github/timeout-and-retry.sh ${{ matrix.build_timeout }}m 3 10 docker-compose -f docker-compose.test.yml build ${{ matrix.image }}
+          .github/timeout-and-retry.sh ${{ matrix.build_timeout }}m 3 10 docker-compose -f docker-compose.test.with_cache.yml build ${{ matrix.image }}
 
       - name: "Elastic Spark TensorFlow Tests 1"
         if: always() && steps.build.outcome == 'success' && matrix.Elastic_Spark_TensorFlow_Tests_1
